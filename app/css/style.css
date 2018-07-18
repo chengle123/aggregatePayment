@@ -1,0 +1,23 @@
+html,
+body{
+    margin:0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    color: rgba(0,0,0,.87);
+    font-family: Roboto,Lato,sans-serif;
+    font-size: 14px;
+}
+.textCenter{
+    text-align: center;
+}
+.el-footer{
+
+}
+.el-footer span{
+    color: #ff4081;
+    transition: all .4s;
+}
+.el-footer span:hover{
+    color:grey
+}

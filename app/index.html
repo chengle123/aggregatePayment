@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>购买卡密</title>
+    <link rel="stylesheet" href="./css/element.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header height="123px">
+                <el-row>
+                    <el-col :span="14" :offset="5">
+                        <h1 class="textCenter">自助购物系统</h1>
+                        <el-menu :default-active="activeIndex"  mode="horizontal" @select="handleSelect">
+                            <el-menu-item index="1">购买卡密</el-menu-item>
+                            <el-menu-item index="2">查询记录</el-menu-item>
+                        </el-menu>
+                    </el-col>
+                </el-row>
+            </el-header>
+            <el-main>
+                <el-row>
+                    <el-col :span="14" :offset="5">
+                        <div>
+                            <div>
+                                <div>
+                                    <label>请选择商品类别</label>
+                                    <el-select v-model="value8" filterable placeholder="请选择">
+                                        <el-option
+                                        v-for="item in options"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </div>
+                                <div>
+                                    <label>请选择商品</label>
+                                    <el-select v-model="value8" filterable placeholder="请选择">
+                                        <el-option
+                                        v-for="item in options"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </div>
+                            </div>
+                            <div>
+                                <div>
+                                    选中商品
+                                </div>
+                                <div>
+                                    <label>购买数量</label>
+                                    <el-input-number v-model="num1" @change="handleChange" :min="1" label="购买数量"></el-input-number>
+                                </div>
+                                <div>
+                                    <label>填写邮箱</label>
+                                    <el-input v-model="input" placeholder="请务必填写正确的邮箱"></el-input>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div></div>
+                    </el-col>
+                </el-row>
+            </el-main>
+            <el-footer class="textCenter">
+                © 自助购物系统 <span>扫码支付后自动显示卡密，并会通过邮件发送。有问题请加QQ：314737853</span>
+            </el-footer>
+        </el-container>
+    </div>
+<script src="./js/vue.js"></script>
+<script src="./js/element.js"></script>
+<script src="./js/vue-router.js"></script>
+<script src="./js/index.js"></script>
+<script>
+    new Vue({
+        el:'#app',
+        data:{
+            options: [{
+                value: '选项1',
+                label: '黄金糕'
+                }, {
+                value: '选项2',
+                label: '双皮奶'
+                }, {
+                value: '选项3',
+                label: '蚵仔煎'
+                }, {
+                value: '选项4',
+                label: '龙须面'
+                }, {
+                value: '选项5',
+                label: '北京烤鸭'
+            }]
+        }
+    });
+
+</script>
+</body>
+</html>
