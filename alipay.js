@@ -1,28 +1,17 @@
 const querystring = require('querystring');
 const crypto = require('crypto');
-
-
-//配置开始
-let appid = 'xxxxx';  //https://open.alipay.com 账户中心->密钥管理->开放平台密钥，填写添加了电脑网站支付的应用的APPID
-let notifyUrl = 'http://www.xxx.com/alipay/notify.php';     //付款成功后的异步回调地址
-let outTradeNo = uniqid();     //你自己的商品订单号，不能重复
-let payAmount = 0.01;          //付款金额，单位:元
-let orderName = '支付测试';    //订单标题
-// let signType = 'RSA2';			//签名算法类型，支持RSA2和RSA，推荐使用RSA2
-let rsaPrivateKey='xxxx';		//商户私钥，填写对应签名算法类型的私钥，如何生成密钥参考：https://docs.open.alipay.com/291/105971和https://docs.open.alipay.com/200/105310
-
-//配置结束
+const uniqid = require('uniqid');
 
 /**
  * ops={}
- * ops.appid
- * ops.notifyUrl
- * ops.outTradeNo
- * ops.payAmount
- * ops.orderName
- * ops.signType
- * ops.rsaPrivateKey
- * ops.timeout
+ * ops.appid ------https://open.alipay.com 账户中心->密钥管理->开放平台密钥，填写添加了电脑网站支付的应用的APPID
+ * ops.notifyUrl -----付款成功后的异步回调地址
+ * ops.payAmount -----付款金额，单位:元
+ * ops.orderName -----订单标题
+ * ops.signType -----签名算法类型，支持RSA2和RSA，默认使用RSA2
+ * ops.rsaPrivateKey -----商户私钥，填写对应签名算法类型的私钥，如何生成密钥参考：https://docs.open.alipay.com/291/105971和https://docs.open.alipay.com/200/105310
+ * ops.timeout -----订单过期时间，默认30分钟
+ * 使用：实例化xx = new AlipayService(ops); xx.doPay((error, response, body)=>{})
  */
 class AlipayService {
     constructor(ops) {
@@ -32,9 +21,9 @@ class AlipayService {
         }
         this.ops = Object.assign(this.ops, ops);
     }
-    doPay(){
+    doPay(fn){
         let requestConfigs = {
-            out_trade_no: this.ops.outTradeNo, // 订单号
+            out_trade_no: uniqid(), // 订单号
             total_amount: this.ops.payAmount,  // 金额
             subject: this.ops.orderName,  // 订单标题
             timeout_express: this.ops.timeout // 该笔订单允许的最晚付款时间，逾期将关闭交易。取值范围：1m～15d。m-分钟，h-小时，d-天，1c-当天（1c-当天的情况下，无论交易何时创建，都在0点关闭）。 该参数数值不接受小数点， 如 1.5h，可转换为 90m。
@@ -51,10 +40,12 @@ class AlipayService {
             version: '1.0',
             notify_url:  this.ops.notifyUrl,
             biz_content: JSON.stringify(requestConfigs)
-        }
+        };
 
-        $commonConfigs["sign"] = this.sign(querystring.stringify(getSignContent(commonConfigs)), this.ops.signType);
-
+        commonConfigs["sign"] = this.sign(querystring.stringify(getSignContent(commonConfigs)), this.ops.signType);
+        curlPost('https://openapi.alipay.com/gateway.do',commonConfigs, (error, response, body)=>{
+            fn(error, response, body);
+        });
     }
     // 排序
     getSignContent(dict){
@@ -77,6 +68,14 @@ class AlipayService {
         sha.update(data, 'utf8');
         return sha.sign(this.ops.rsaPrivateKey, 'base64');
     }
+    curlPost(url, ops, callback){
+        request({
+            url: url + ops,
+            method: "GET"
+        }, function(error, response, body) {
+            callback(error, response, body);
+        });
+    }
 }
 
 Date.prototype.Format = function(formatStr)
@@ -98,3 +97,5 @@ Date.prototype.Format = function(formatStr)
     str=str.replace(/s|S/g,this.getSeconds());
     return str;
 }
+
+module.exports = AlipayService;
