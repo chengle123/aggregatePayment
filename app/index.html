@@ -2,17 +2,17 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>购买卡密</title>
-    <link rel="stylesheet" href="./css/element.css">
+    <title>自助购买系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
     <div id="app">
         <el-container>
-            <el-header height="123px">
+            <el-header height="123px" style="margin-top:50px;">
                 <el-row>
-                    <el-col :span="14" :offset="5">
-                        <h1 class="textCenter">自助购物系统</h1>
+                    <el-col :span="10" :offset="7">
+                        <h1 class="textCenter">自助购买系统</h1>
                         <el-menu :default-active="activeIndex"  mode="horizontal" @select="handleSelect">
                             <el-menu-item index="1">购买卡密</el-menu-item>
                             <el-menu-item index="2">查询记录</el-menu-item>
@@ -21,84 +21,244 @@
                 </el-row>
             </el-header>
             <el-main>
-                <el-row>
-                    <el-col :span="14" :offset="5">
-                        <div>
+                <el-row v-if="activeIndex === '1'">
+                    <el-col :span="10" :offset="7">
+                        <el-form label-width="80px" :model="formLabelAlign" size="small">
                             <div>
                                 <div>
-                                    <label>请选择商品类别</label>
-                                    <el-select v-model="value8" filterable placeholder="请选择">
-                                        <el-option
-                                        v-for="item in options"
-                                        :key="item.value"
-                                        :label="item.label"
-                                        :value="item.value">
-                                        </el-option>
-                                    </el-select>
+                                    <el-form-item label="商品类别">
+                                        <el-select v-model="category" filterable placeholder="请选择商品类别">
+                                            <el-option
+                                            v-for="item in categorys"
+                                            :key="item.value"
+                                            :label="item.name"
+                                            :value="item">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="选择商品" v-if="category">
+                                        <el-select v-model="good" filterable placeholder="请选择商品">
+                                            <el-option
+                                            v-for="item in category.goods"
+                                            :key="item.value"
+                                            :label="item.name"
+                                            :value="item">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
                                 </div>
-                                <div>
-                                    <label>请选择商品</label>
-                                    <el-select v-model="value8" filterable placeholder="请选择">
-                                        <el-option
-                                        v-for="item in options"
-                                        :key="item.value"
-                                        :label="item.label"
-                                        :value="item.value">
-                                        </el-option>
-                                    </el-select>
+                                <div v-if="good">
+                                    <div class="selectGood">
+                                        {{ category.name }} / {{ good.name }} <span style="color:#f00;margin-left:30px;">(扫码付款后会自动发送兑换码或直接充值到账户)</span>
+                                    </div>
+                                    
+                                    <el-form-item label="购买数量">
+                                        <el-input-number v-model="num" :min="1" :step="1" label="购买数量"></el-input-number>
+                                        <span class="price">￥{{ num*good.value }}</span>
+                                    </el-form-item>
+                                    <el-form-item
+                                    label="填写邮箱" 
+                                    prop="email"
+                                    :rules="[
+                                    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+                                    { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+                                    ]">
+                                        <el-input v-model="formLabelAlign.email" placeholder="请务必填写正确的邮箱（必填项）"></el-input>
+                                    </el-form-item>
+                                    <div>
+                                        <el-form-item label="支付方式">
+                                            <ul class="card-box">
+                                                <li class="card" @click="selectPayMod('alipay');" :class="{active : payMode === 'alipay'}">
+                                                    <img src="./images/ali.png" alt="支付宝扫码(当面付)" height="48">
+                                                    <p style="margin:0;">支付宝扫码(当面付)</p>
+                                                </li>
+                                            </ul>
+                                        </el-form-item>
+                                        <div style="margin-top:20px;margin-bottom:50px;">
+                                            <el-button type="primary" plain disabled v-if="!payMode || !formLabelAlign.email">立即支付</el-button>
+                                            <el-button type="primary" plain @click="pay();" v-if="payMode && formLabelAlign.email">立即支付</el-button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <div>
-                                    选中商品
-                                </div>
-                                <div>
-                                    <label>购买数量</label>
-                                    <el-input-number v-model="num1" @change="handleChange" :min="1" label="购买数量"></el-input-number>
-                                </div>
-                                <div>
-                                    <label>填写邮箱</label>
-                                    <el-input v-model="input" placeholder="请务必填写正确的邮箱"></el-input>
-                                </div>
+                        </el-form>
+                    </el-col>
+                </el-row>
 
+                 <el-row v-if="activeIndex === '2'">
+                    <el-col :span="10" :offset="7">
+                        <el-form :inline="true" label-width="80px" :model="queryOrder" size="small">
+                            <div>
+                                <div>
+                                    <el-form-item
+                                    label="收货邮箱" 
+                                    prop="email"
+                                    :rules="[
+                                    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+                                    { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+                                    ]">
+                                        <el-input v-model="queryOrder.email" placeholder="请务输入收货邮箱"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-button plain @click="onSubmit">查询</el-button>
+                                    </el-form-item>
+                                </div>
+                                <div>
+                                    <el-table
+                                    :data="tableData"
+                                    style="width: 100%">
+                                        <el-table-column
+                                            prop="trade_no"
+                                            label="订单">
+                                        </el-table-column>
+                                        <el-table-column
+                                            prop="subject"
+                                            label="商品名称">
+                                        </el-table-column>
+                                        <el-table-column
+                                            prop="price"
+                                            label="数目/金额"
+                                            width="120">
+                                            <template slot-scope="scope">
+                                                {{ scope.row.num }}（￥{{ scope.row.price }}）
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            prop="key"
+                                            label="卡密"
+                                            width="180">
+                                        </el-table-column>
+                                    </el-table>
+                                </div>
                             </div>
-                        </div>
-                        <div></div>
+                        </el-form>
                     </el-col>
                 </el-row>
             </el-main>
             <el-footer class="textCenter">
-                © 自助购物系统 <span>扫码支付后自动显示卡密，并会通过邮件发送。有问题请加QQ：314737853</span>
+                © 自助购物系统
+                <a href="https://github.com/chengle123/aggregatePayment" target="_blank">
+                    <img style="display: inline-block; vertical-align: middle; margin: -3px 6px 0; width: 16px; height: 16px; line-height: 1;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpFNTE3OEEyRTk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpFNTE3OEEyRjk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkU1MTc4QTJDOTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkU1MTc4QTJEOTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+FYrpWAAABrNJREFUeNrkW2ls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" class="icon">
+                </a>
+                <span>扫码支付后自动显示卡密，并会通过邮件发送。有问题请加QQ：314737853</span>
             </el-footer>
         </el-container>
     </div>
 <script src="./js/vue.js"></script>
 <script src="./js/element.js"></script>
-<script src="./js/vue-router.js"></script>
-<script src="./js/index.js"></script>
 <script>
     new Vue({
         el:'#app',
         data:{
-            options: [{
-                value: '选项1',
-                label: '黄金糕'
-                }, {
-                value: '选项2',
-                label: '双皮奶'
-                }, {
-                value: '选项3',
-                label: '蚵仔煎'
-                }, {
-                value: '选项4',
-                label: '龙须面'
-                }, {
-                value: '选项5',
-                label: '北京烤鸭'
-            }]
+            activeIndex: '1',
+            category:'',
+            good:'',
+            num: 1,
+            formLabelAlign:{
+                email:''
+            },
+            queryOrder: {
+                email:''
+            },
+            payMode:'',
+            tableData: [{
+                trade_no: '2013112011001004330000121536',
+                subject: '美逛群发工具 / 七天试用(14元) ',
+                key: '已充值',
+                price: 14,
+                num: 1
+            }, {
+                trade_no: '2013112011001004330000121537',
+                subject: '美逛群发工具 / 七天试用(14元) ',
+                key: '已充值',
+                price: 14,
+                num: 1
+            }, {
+                trade_no: '2013112011001004330000121538',
+                subject: '美逛群发工具 / 七天试用(14元) ',
+                key: '已充值',
+                price: 14,
+                num: 1
+            }, {
+                trade_no: '2013112011001004330000121539',
+                subject: '美逛群发工具 / 七天试用(14元) ',
+                key: '已充值',
+                price: 14,
+                num: 1
+            }],
+            categorys: [
+                {
+                    value: 'meiguang',
+                    name: '美逛群发工具',
+                    goods:[
+                        {
+                            name:"七天试用(14元)",
+                            value: 14
+                        },
+                        {
+                            name:"一个月(60元)",
+                            value: 60
+                        },
+                        {
+                            name:"六个月(300元)",
+                            value: 300
+                        },
+                        {
+                            name:"一年(540元)",
+                            value: 540
+                        },
+                        {
+                            name:"永久(900元)",
+                            value: 900
+                        }
+                    ]
+                }
+            ]
+        },
+        methods:{
+            selectPayMod(type){
+                this.payMode = 'alipay';
+            },
+            handleSelect(index){
+                this.activeIndex = index;
+            },
+            pay(){
+                console.log(new Date().Format('YYYY-MM-DD HH:mm:ss'))
+                window.open(`./alipay.html?data=${JSON.stringify({
+                    category: {
+                        value: this.category.value,
+                        name: this.category.name
+                    },
+                    good: this.good,
+                    num: this.num,
+                    email: this.formLabelAlign.email,
+                    payMode: this.payMode,
+                    time: new Date().Format('YYYY-MM-DD HH:mm:ss'),
+                    id: new Date().Format('YYYYMMDDHHmmss')+(Math.round(Math.random() * 89 + 100)).toString()
+                })}`)
+            }
         }
     });
 
+    Date.prototype.Format = function(formatStr)
+    {
+        var str = formatStr;
+        var Week = ['日','一','二','三','四','五','六'];
+        str=str.replace(/yyyy|YYYY/,this.getFullYear());
+        str=str.replace(/yy|YY/,(this.getYear() % 100)>9?(this.getYear() % 100).toString():'0' + (this.getYear() % 100));
+        str=str.replace(/MM/,this.getMonth()>9?this.getMonth().toString():'0' + this.getMonth());
+        str=str.replace(/M/g,this.getMonth());
+        str=str.replace(/w|W/g,Week[this.getDay()]);
+        str=str.replace(/dd|DD/,this.getDate()>9?this.getDate().toString():'0' + this.getDate());
+        str=str.replace(/d|D/g,this.getDate());
+        str=str.replace(/hh|HH/,this.getHours()>9?this.getHours().toString():'0' + this.getHours());
+        str=str.replace(/h|H/g,this.getHours());
+        str=str.replace(/mm/,this.getMinutes()>9?this.getMinutes().toString():'0' + this.getMinutes());
+        str=str.replace(/m/g,this.getMinutes());
+        str=str.replace(/ss|SS/,this.getSeconds()>9?this.getSeconds().toString():'0' + this.getSeconds());
+        str=str.replace(/s|S/g,this.getSeconds());
+        return str;
+    }
 </script>
 </body>
 </html>

@@ -12,7 +12,6 @@ const account = require('./models/account');
 const email = require('./email');
 const { alipayConfig, emailConfig, alipay_public_key } = require('./config');
 
-let buyerDate = {};
 
 // 启动服务
 let app = express();
@@ -37,7 +36,7 @@ router.post('/alipayGateway', function(req, res) {
                 title: '购买通知',
                 contentTitle: '购买成功',
                 contentText: `您已经成功购买${req.body.subject}，感谢您的使用`,
-                to: buyerDate.email
+                // to: buyerDate.email
             });
             res.end('success');
         }else{
@@ -81,12 +80,11 @@ function copyObj(obj) {
 }
 
 // 创建订单
-router.post('/', function(req, res) {
-    let category = req.body.category;
+router.post('/getQR', function(req, res) {
+    let category = req.body.category.value;
     let payMode = req.body.payMode;
-    buyerDate = req.body;
     try{
-        if(category === '美逛工具'){
+        if(category === 'meiguang'){
             account.find({where:{name: req.body.email}}).then(function(rows){
                 if(rows){
                     if(payMode === 'alipay'){
@@ -119,8 +117,9 @@ app.use('/', router);
 // 获取支付宝交易二维码
 function alipayQR(ops, res){
     let alipay = new AlipayService(Object.assign({
-        payAmount: ops.payAmount,
-        orderName: ops.orderName,
+        payAmount: (ops.good.value * ops.num).toFixed(2),
+        orderName: ops.category.name + ops.good.name,
+        body: `${ops.email},${ops.category.name},${ops.good.name},${ops.num},${ops.good.value}`
     }, alipayConfig));
     alipay.doPay((error, response, body)=>{
         let data = JSON.parse(body);

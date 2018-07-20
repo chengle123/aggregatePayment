@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>支付宝扫码</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body style="background:#f7f7f7; height: 100%;">
+    <div id="app">
+        <h1 class="mod-title">
+            <span class="ico-wechat"></span>
+            <span class="text">支付宝扫码</span>
+        </h1>
+        <div class="mod-ct">
+            <div class="order"></div>
+            <div class="qr-image" id="qrcode" v-loading="loading">
+                <img :src="qrImg" title="请使用支付宝“扫一扫”" style="display: initial;">
+            </div>
+
+            <div class="detail" :class="{'detail-open': btn}" id="orderDetail">
+                <dl class="detail-ct">
+                    <dt>商品</dt>
+                    <dd id="storeName">{{ data.category.name }} / {{ data.good.name }}</dd>
+                    <dt>说明</dt>
+                    <dd id="productName">{{ data.email }},{{ data.category.name }},{{ data.good.name }},{{ data.num }},{{ data.good.value }}</dd>
+                    <dt>订单号</dt>
+                    <dd id="billId">{{ data.id }}</dd>
+                    <dt>时间</dt>
+                    <dd id="createTime">{{ data.time }}</dd>
+                </dl>
+                <a href="javascript:void(0)" class="arrow" @click="show();"><i class="ico-arrow"></i></a>
+            </div>
+            <div class="tip">
+                <span class="dec dec-left"></span>
+                <span class="dec dec-right"></span>
+                <div class="ico-scan"></div>
+                <div class="tip-text">
+                    <p>请使用支付宝扫一扫</p>
+                    <p>扫描二维码完成支付</p>
+                </div>
+            </div>
+            <div class="tip-text">
+            </div>
+        </div>
+        <div class="foot">
+            <div class="inner">
+                <p>自助购物系统, 有疑问请联系客服</p>
+            </div>
+        </div>
+    </div>
+<script src="./js/vue.js"></script>
+<script src="./js/element.js"></script>
+<script src="http://localhost:8788/socket.io/socket.io.js"></script>
+<script>
+    // socket = io.connect('http://localhost:8788');
+    new Vue({
+        el:'#app',
+        data:{
+            btn: false,
+            loading: true,
+            data: {},
+            qrImg: ''
+        },
+        mounted(){
+            var _this=this;
+            var str=decodeURI(location.href); //取得整个地址栏
+            var arr=str.split("data="); //各个参数放到数组里
+            this.data = JSON.parse(arr[1]);
+
+            this.$http.post('http://localhost:8788/getQR', _this.data).then(function (data) {
+                _this.loading = false;
+                if(data && data.data.result === 'success'){
+                    _this.qrImg = data.data.data.url;
+                }else{
+                    _this.$message({
+                        showClose: true,
+                        message: '二维码获取失败，请刷新页面',
+                        type: 'error'
+                    });
+                }
+            })
+        },
+        methods:{
+            show(){
+                console.log(this)
+                if(this.btn){
+                    this.btn = false;
+                }else{
+                    this.btn = true;
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
