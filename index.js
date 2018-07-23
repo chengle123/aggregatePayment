@@ -19,11 +19,9 @@ const { alipayConfig, emailConfig, alipay_public_key } = require('./config');
 
 // 启动服务
 io.on('connection', function(socket){
-    console.log('a user connected');
-
-    socket.on("disconnect", function() {
-        console.log("a user go out");
-    });
+    // socket.on("disconnect", function() {
+    //     console.log("a user go out");
+    // });
 
     socket.on("message", function(obj) {
         //延迟3s返回信息给客户端

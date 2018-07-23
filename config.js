@@ -1,6 +1,6 @@
 const alipayConfig = {
-    appid: 'xxx',
-    notifyUrl: 'http://transaction.sansantao.com/alipayGateway ',
+    appid: '2018040402500795',
+    notifyUrl: 'http://transaction.sansantao.com/alipayGateway',
     rsaPrivateKey: '123123123',//私钥
 };
 
