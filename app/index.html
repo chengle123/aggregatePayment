@@ -145,6 +145,7 @@
         </el-container>
     </div>
 <script src="./js/vue.js"></script>
+<script src="js/axios.min.js"></script>
 <script src="./js/element.js"></script>
 <script>
     new Vue({
@@ -223,7 +224,27 @@
                 this.activeIndex = index;
             },
             pay(){
-                console.log(new Date().Format('YYYY-MM-DD HH:mm:ss'))
+                var _this = this
+                if(this.category.value === 'meiguang'){
+                    axios.post('/verifyAccount', {
+                        email: _this.formLabelAlign.email,
+                        type: _this.category.value
+                    }).then(function (data) {
+                        if(data && data.data.result === 'success'){
+                            _this.open();
+                        }else{
+                            _this.$message({
+                                showClose: true,
+                                message: data.data.msg,
+                                type: 'error'
+                            });
+                        }
+                    })
+                }else{
+                    this.open();
+                }
+            },
+            open(){
                 window.open(`./alipay.html?data=${JSON.stringify({
                     category: {
                         value: this.category.value,
@@ -246,8 +267,8 @@
         var Week = ['日','一','二','三','四','五','六'];
         str=str.replace(/yyyy|YYYY/,this.getFullYear());
         str=str.replace(/yy|YY/,(this.getYear() % 100)>9?(this.getYear() % 100).toString():'0' + (this.getYear() % 100));
-        str=str.replace(/MM/,this.getMonth()>9?this.getMonth().toString():'0' + this.getMonth());
-        str=str.replace(/M/g,this.getMonth());
+        str=str.replace(/MM/,this.getMonth()+1>9?this.getMonth()+1:'0' + (this.getMonth()+1));
+        str=str.replace(/M/g,this.getMonth()+1);
         str=str.replace(/w|W/g,Week[this.getDay()]);
         str=str.replace(/dd|DD/,this.getDate()>9?this.getDate().toString():'0' + this.getDate());
         str=str.replace(/d|D/g,this.getDate());

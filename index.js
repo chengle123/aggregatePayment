@@ -4,8 +4,12 @@ const cron = require('node-cron');
 const mysql = require('mysql');
 const path = require('path');
 const express = require('express');
-const bodyParser = require('body-parser');
 const router = express.Router();
+const bodyParser = require('body-parser');
+let app = express();
+let server = require('http').createServer(app);
+let io = require('socket.io')(server);
+
 const querystring = require('querystring');
 const AlipayService = require('./alipay');
 const account = require('./models/account');
@@ -14,13 +18,28 @@ const { alipayConfig, emailConfig, alipay_public_key } = require('./config');
 
 
 // 启动服务
-let app = express();
+io.on('connection', function(socket){
+    console.log('a user connected');
+
+    socket.on("disconnect", function() {
+        console.log("a user go out");
+    });
+
+    socket.on("message", function(obj) {
+        //延迟3s返回信息给客户端
+        setTimeout(function(){
+            console.log('the websokcet message is'+obj);
+            io.emit("message", obj);
+        },3000);
+    });
+});
 app.use(bodyParser.json({limit:'50mb'}));
 app.use(bodyParser.urlencoded({ limit:'50mb', extended: false }));
 app.use(express.static(path.join(__dirname, './app')));
-let server = app.listen(8788, function() {
+server.listen(8788, function() {
 	console.log('Ready');
 });
+
 
 // 接口开始
 
@@ -39,6 +58,11 @@ router.post('/alipayGateway', function(req, res) {
                 // to: buyerDate.email
             });
             res.end('success');
+            io.emit("alipayGateway", {
+                result: 'success',
+                data: [],
+                msg: '支付成功'
+            })
         }else{
             res.end('error');
         }
@@ -47,6 +71,55 @@ router.post('/alipayGateway', function(req, res) {
 	}
 })
 
+// 创建订单
+router.post('/getQR', function(req, res) {
+    let category = req.body.category.value;
+    let payMode = req.body.payMode;
+    try{
+        if(payMode === 'alipay'){
+            alipayQR(req.body, res);
+        }
+	}catch(e) {
+        res.json({
+            result: 'error',
+            data: '',
+            msg: '订单创建失败,E002'
+        })
+	}
+})
+
+// 验证账户
+router.post('/verifyAccount', function(req, res) {
+    try{
+        if(req.body.type === 'meiguang'){
+            account.find({where:{name: req.body.email}}).then(function(rows){
+                if(rows){
+                    res.json({
+                        result: 'success',
+                        data: '',
+                        msg: '美逛工具账户存在'
+                    })
+                }else{
+                    res.json({
+                        result: 'error',
+                        data: '',
+                        msg: '账户(邮箱)不存在，请先注册产品'
+                    })
+                }
+            })
+        }
+	}catch(e) {
+        res.json({
+            result: 'error',
+            data: '',
+            msg: '邮箱账户查询失败'
+        })
+	}
+})
+
+app.use('/', router);
+
+// 验签
 function signVerify(response){
     let ret = copyObj(response);
     let sign = ret['sign'];
@@ -78,41 +151,6 @@ function copyObj(obj) {
   }
   return res
 }
-
-// 创建订单
-router.post('/getQR', function(req, res) {
-    let category = req.body.category.value;
-    let payMode = req.body.payMode;
-    try{
-        if(category === 'meiguang'){
-            account.find({where:{name: req.body.email}}).then(function(rows){
-                if(rows){
-                    if(payMode === 'alipay'){
-                        alipayQR(req.body, res);
-                    }
-                }else{
-                    res.json({
-                        result: 'error',
-                        data: '',
-                        msg: '账户不存在'
-                    })
-                }
-            })
-        }else{
-            if(payMode === 'alipay'){
-                alipayQR(req.body, res);
-            }
-        }
-	}catch(e) {
-        res.json({
-            result: 'error',
-            data: '',
-            msg: '订单创建失败,E002'
-        })
-	}
-})
-
-app.use('/', router);
 
 // 获取支付宝交易二维码
 function alipayQR(ops, res){

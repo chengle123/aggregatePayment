@@ -17,7 +17,13 @@
         <div class="mod-ct">
             <div class="order"></div>
             <div class="qr-image" id="qrcode" v-loading="loading">
-                <img :src="qrImg" title="请使用支付宝“扫一扫”" style="display: initial;">
+                <img :src="qrImg" title="请使用支付宝“扫一扫”" style="display: initial;" v-if="!success">
+                <div v-if="success">
+                    <h1 style="color: #259e17;">
+                        <i class="el-icon-success"></i>
+                        支付成功
+                    </h1>
+                </div>
             </div>
 
             <div class="detail" :class="{'detail-open': btn}" id="orderDetail">
@@ -53,16 +59,18 @@
     </div>
 <script src="./js/vue.js"></script>
 <script src="./js/element.js"></script>
+<script src="js/axios.min.js"></script>
 <script src="http://localhost:8788/socket.io/socket.io.js"></script>
 <script>
-    // socket = io.connect('http://localhost:8788');
+    socket = io.connect('http://localhost:8788');
     new Vue({
         el:'#app',
         data:{
             btn: false,
             loading: true,
             data: {},
-            qrImg: ''
+            qrImg: '',
+            success: false
         },
         mounted(){
             var _this=this;
@@ -70,7 +78,7 @@
             var arr=str.split("data="); //各个参数放到数组里
             this.data = JSON.parse(arr[1]);
 
-            this.$http.post('http://localhost:8788/getQR', _this.data).then(function (data) {
+            axios.post('/getQR', _this.data).then(function (data) {
                 _this.loading = false;
                 if(data && data.data.result === 'success'){
                     _this.qrImg = data.data.data.url;
@@ -82,10 +90,14 @@
                     });
                 }
             })
+            socket.on('alipayGateway', function (data) {
+                if(data.result === "success"){
+                    _this.success = true;
+                }
+            });
         },
         methods:{
             show(){
-                console.log(this)
                 if(this.btn){
                     this.btn = false;
                 }else{

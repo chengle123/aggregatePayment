@@ -43,8 +43,8 @@ class AlipayService {
             biz_content: JSON.stringify(requestConfigs)
         };
 
-        commonConfigs["sign"] = this.sign(querystring.stringify(getSignContent(commonConfigs)), this.ops.signType);
-        curlPost('https://openapi.alipay.com/gateway.do',commonConfigs, (error, response, body)=>{
+        commonConfigs["sign"] = this.sign(querystring.stringify(this.getSignContent(commonConfigs)), this.ops.signType);
+        this.curlPost('https://openapi.alipay.com/gateway.do',commonConfigs, (error, response, body)=>{
             fn(error, response, body);
         });
     }
@@ -85,8 +85,8 @@ Date.prototype.Format = function(formatStr)
     var Week = ['日','一','二','三','四','五','六'];
     str=str.replace(/yyyy|YYYY/,this.getFullYear());
     str=str.replace(/yy|YY/,(this.getYear() % 100)>9?(this.getYear() % 100).toString():'0' + (this.getYear() % 100));
-    str=str.replace(/MM/,this.getMonth()>9?this.getMonth().toString():'0' + this.getMonth());
-    str=str.replace(/M/g,this.getMonth());
+    str=str.replace(/MM/,this.getMonth()+1>9?this.getMonth()+1:'0' + (this.getMonth()+1));
+    str=str.replace(/M/g,this.getMonth()+1);
     str=str.replace(/w|W/g,Week[this.getDay()]);
     str=str.replace(/dd|DD/,this.getDate()>9?this.getDate().toString():'0' + this.getDate());
     str=str.replace(/d|D/g,this.getDate());
