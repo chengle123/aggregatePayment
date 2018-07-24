@@ -81,7 +81,7 @@
             axios.post('/getQR', _this.data).then(function (data) {
                 _this.loading = false;
                 if(data && data.data.result === 'success'){
-                    _this.qrImg = data.data.data.url;
+                    _this.qrImg = '../qrImages/'+data.data.data.url;
                 }else{
                     _this.$message({
                         showClose: true,

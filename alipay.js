@@ -1,6 +1,7 @@
 const querystring = require('querystring');
 const crypto = require('crypto');
 const uniqid = require('uniqid');
+var request = require('request');
 
 /**
  * ops={}
@@ -43,20 +44,33 @@ class AlipayService {
             biz_content: JSON.stringify(requestConfigs)
         };
 
-        commonConfigs["sign"] = this.sign(querystring.stringify(this.getSignContent(commonConfigs)), this.ops.signType);
-        this.curlPost('https://openapi.alipay.com/gateway.do',commonConfigs, (error, response, body)=>{
+        var ret = this.encodeParams(commonConfigs);
+        var sign = this.sign(ret.unencode, this.ops.signType);
+        this.curlPost('https://openapi.alipay.com/gateway.do',ret.encode, encodeURIComponent(sign), (error, response, body)=>{
             fn(error, response, body);
         });
     }
-    // 排序
-    getSignContent(dict){
-        var dict2 = {}, 
-            keys = Object.keys(dict).sort();
-        for (var i = 0, n = keys.length, key; i < n; ++i) {
-            key = keys[i];
-            dict2[key] = dict[key];
+    encodeParams(params) {
+        var keys = [];
+        for(var k in params) {
+            var v = params[k];
+            if (params[k] !== undefined && params[k] !== "") keys.push(k);
         }
-        return dict2;
+        keys.sort();
+
+        var unencodeStr = "";
+        var encodeStr = "";
+        var len = keys.length;
+        for(var i = 0; i < len; ++i) {
+            var k = keys[i];
+            if(i !== 0) {
+                unencodeStr += '&';
+                encodeStr += '&';
+            }
+            unencodeStr += k + '=' + params[k];
+            encodeStr += k + '=' + encodeURIComponent(params[k]);
+        }
+        return {unencode:unencodeStr, encode:encodeStr};
     }
     // 签名
     sign(data, signType){
@@ -69,9 +83,9 @@ class AlipayService {
         sha.update(data, 'utf8');
         return sha.sign(this.ops.rsaPrivateKey, 'base64');
     }
-    curlPost(url, ops, callback){
+    curlPost(url, ops, sign, callback){
         request({
-            url: url + ops,
+            url: url +'?'+ ops + '&sign=' + sign,
             method: "GET"
         }, function(error, response, body) {
             callback(error, response, body);

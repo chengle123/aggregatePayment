@@ -60,7 +60,8 @@ router.post('/alipayGateway', function(req, res) {
                 result: 'success',
                 data: [],
                 msg: '支付成功'
-            })
+            });
+            // account.update({remainderDays: day },{ where: { name: email } })
         }else{
             res.end('error');
         }
@@ -71,7 +72,6 @@ router.post('/alipayGateway', function(req, res) {
 
 // 创建订单
 router.post('/getQR', function(req, res) {
-    let category = req.body.category.value;
     let payMode = req.body.payMode;
     try{
         if(payMode === 'alipay'){
@@ -130,7 +130,6 @@ function signVerify(response){
     } else {
         return crypto.createVerify('RSA-SHA1').update(tmp).verify(alipay_public_key, sign, 'base64');
     }
-    
 }
 // 排序
 function getSignContent(dict){
@@ -158,11 +157,12 @@ function alipayQR(ops, res){
         body: `${ops.email},${ops.category.name},${ops.good.name},${ops.num},${ops.good.value}`
     }, alipayConfig));
     alipay.doPay((error, response, body)=>{
-        let data = JSON.parse(body);
+        let data = JSON.parse(body).alipay_trade_precreate_response;
+        console.log(data)
         if(data['code'] && data['code']=='10000'){
-            let qr_png = qr.image(url, { type: 'png', margin: 0, size: 8});
+            let qr_png = qr.image(data.qr_code, { type: 'png', margin: 0, size: 8});
             let dateName = data['out_trade_no'];
-            let imgName = `./qrImages/${dateName}.png`;
+            let imgName = `./app/qrImages/${dateName}.png`;
             let qr_pipe = qr_png.pipe(fs.createWriteStream(imgName));
             qr_pipe.on('error', function(err){
                 console.log(err);
@@ -172,11 +172,11 @@ function alipayQR(ops, res){
                 res.json({
                     result: 'success',
                     data: {
-                        url: 'http://transaction.sansantao.com/qrImages/'+dateName+'.png'
+                        url: dateName+'.png'
                     },
                     msg: '订单创建成功'
                 })
-                console.log('http://transaction.sansantao.com/qrImages/'+dateName+'.png')
+                // console.log(dateName+'.png')
             })
         }else{
             res.json({
@@ -193,10 +193,10 @@ function alipayQR(ops, res){
 
 // 定时更新任务
 cron.schedule('1 0 0 * * *', function() {
-    let dirList = fs.readdirSync('./qrImages');
+    let dirList = fs.readdirSync('./app/qrImages');
      dirList.forEach(function(fileName)
      {
-         fs.unlinkSync('./qrImages/' + fileName);
+         fs.unlinkSync('./app/qrImages/' + fileName);
         //  console.log(`删除${fileName}`)
      });
 });

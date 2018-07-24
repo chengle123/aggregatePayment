@@ -1,7 +1,9 @@
+const fs = require('fs');
+
 const alipayConfig = {
-    appid: '2018040402500795',
+    appId: '2018040402500795',
     notifyUrl: 'http://transaction.sansantao.com/alipayGateway',
-    rsaPrivateKey: '123123123',//私钥
+    rsaPrivateKey: fs.readFileSync('./key/privateKey.pem'),//私钥
 };
 
 // 支付宝公钥,验签用
