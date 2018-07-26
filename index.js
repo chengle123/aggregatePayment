@@ -3,6 +3,7 @@ const fs = require('fs');
 const cron = require('node-cron');
 const mysql = require('mysql');
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
@@ -12,7 +13,7 @@ let io = require('socket.io')(server);
 
 const querystring = require('querystring');
 const AlipayService = require('./alipay');
-const account = require('./models/account');
+// const account = require('./models/account');
 const email = require('./email');
 const { alipayConfig, emailConfig, alipay_public_key } = require('./config');
 
@@ -31,8 +32,12 @@ io.on('connection', function(socket){
         },3000);
     });
 });
-app.use(bodyParser.json({limit:'50mb'}));
+app.use((req,res,next)=>{
+  req.headers['content-type'] && (req.headers['content-type'] = req.headers['content-type'].replace('utf8','utf-8'));
+  next();
+});
 app.use(bodyParser.urlencoded({ limit:'50mb', extended: false }));
+app.use(bodyParser.json({limit:'50mb'}));
 app.use(express.static(path.join(__dirname, './app')));
 server.listen(8788, function() {
 	console.log('Ready');
@@ -43,17 +48,17 @@ server.listen(8788, function() {
 
 // 支付成功回调
 router.post('/alipayGateway', function(req, res) {
-    // var data = JSON.parse(req.body.data);
-    // var url = req.body.url;
-    console.log(req.body)
+    var data = req.body.body.split(',');
     try{
         //文档https://docs.open.alipay.com/194/103296/
         if(signVerify(req.body)){
+            console.log(123)
+            console.log(data)
             email(emailConfig, {
                 title: '购买通知',
                 contentTitle: '购买成功',
                 contentText: `您已经成功购买${req.body.subject}，感谢您的使用`,
-                // to: buyerDate.email
+                to: data[0]
             });
             res.end('success');
             io.emit("alipayGateway", {
@@ -63,6 +68,7 @@ router.post('/alipayGateway', function(req, res) {
             });
             // account.update({remainderDays: day },{ where: { name: email } })
         }else{
+            console.log('错误')
             res.end('error');
         }
 	}catch(e) {
@@ -117,18 +123,49 @@ router.post('/verifyAccount', function(req, res) {
 
 app.use('/', router);
 
+// signVerify({
+//     gmt_create: '2018-07-26 21:32:31',
+//   charset: 'utf8',
+//   seller_email: '18734256377',
+//   subject: '测试类型测试(0.1元)',
+//   sign: 'VVF+LebiuV3zF44LtWilnDcsavd91L/77OEaY3mtm4jUqNnAx1nEdlYiF+B7S1vBl6oFSRHd4pyhdL/vEmSJI1cNRj4kFJARJle2jVMKYW0Xp6Q3JPxmZ0Pqw9k4t+3xG4rjPyFakqi1ItAYfmelKgbNRN4j5Yt351m+CrKrL1tO7LP3+E8uzB0Zd7c0k47Mmj6TNDNFCtL50YtePOdxlSq9akYCgKkqhEUJdatcLjAyNMnlfks3ou+jvrKYryKX0D5dKLD8DPrRzP8HBVYGYsU8mZmUjIWvuDNe7SLTJ1aFtzFxdSSXmgxiRa0qG1a74O9kwhf8FpkuxbGDAKxCbg==',
+//   body: '314737853@qq.com,测试类型,测试(0.1元),1,0.1',
+//   buyer_id: '2088312986798461',
+//   invoice_amount: '0.10',
+//   notify_id: '9da6a48f78748c2617da62ec2b6f79bjjx',
+//   fund_bill_list: '[{"amount":"0.10","fundChannel":"ALIPAYACCOUNT"}]',
+//   notify_type: 'trade_status_sync',
+//   trade_status: 'TRADE_SUCCESS',
+//   receipt_amount: '0.10',
+//   app_id: '2018040402500795',
+//   buyer_pay_amount: '0.10',
+//   sign_type: 'RSA2',
+//   seller_id: '2088702162037666',
+//   gmt_payment: '2018-07-26 21:32:43',
+//   notify_time: '2018-07-26 21:32:43',
+//   version: '1.0',
+//   out_trade_no: '2p1q0bep7jk2lk6g2',
+//   total_amount: '0.10',
+//   trade_no: '2018072621001004460579982898',
+//   auth_app_id: '2018040402500795',
+//   buyer_logon_id: '150***@163.com',
+//   point_amount: '0.00' }
+// )
 // 验签
 function signVerify(response){
-    let ret = copyObj(response);
-    let sign = ret['sign'];
-    let sign_type = ret['sign_type'];
-    ret.sign = undefined;
-    ret.sign_type = undefined;
-    let tmp =querystring.stringify(getSignContent(ret));
-    if(sign_type === 'RSA2') {
-        return crypto.createVerify('RSA-SHA256').update(tmp).verify(alipay_public_key, sign, 'base64');
+    let obj = {} 
+    let keys = Object.keys(response).sort() 
+    let prestr = [] 
+    keys.forEach(function (e) { 
+        if (e != 'sign' && e != 'sign_type' && (response[e] || response[e] === 0)) { 
+            prestr.push(`${e}=${response[e]}`) 
+        } 
+    });
+    prestr = prestr.join('&');
+    if(response['sign_type'] === 'RSA2') {
+        return crypto.createVerify('RSA-SHA256').update(prestr).verify(alipay_public_key, response['sign'], 'base64');
     } else {
-        return crypto.createVerify('RSA-SHA1').update(tmp).verify(alipay_public_key, sign, 'base64');
+        return crypto.createVerify('RSA-SHA1').update(prestr).verify(alipay_public_key, response['sign'], 'base64');
     }
 }
 // 排序
