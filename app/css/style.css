@@ -13,6 +13,7 @@ body{
     font-family: Roboto,Lato,sans-serif;
     font-size: 14px;
 }
+a{text-decoration:none;}
 .textCenter{
     text-align: center;
 }

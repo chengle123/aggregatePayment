@@ -76,7 +76,18 @@
                                         </el-form-item>
                                         <div style="margin-top:20px;margin-bottom:50px;">
                                             <el-button type="primary" plain disabled v-if="!payMode || !formLabelAlign.email">立即支付</el-button>
-                                            <el-button type="primary" plain @click="pay();" v-if="payMode && formLabelAlign.email">立即支付</el-button>
+                                            <a class="el-button el-button--primary" :href="'./alipay.html?data='+ JSON.stringify({
+                    category: {
+                        value: this.category.value,
+                        name: this.category.name
+                    },
+                    good: this.good,
+                    num: this.num,
+                    email: this.formLabelAlign.email,
+                    payMode: this.payMode,
+                    time: new Date().Format('YYYY-MM-DD HH:mm:ss'),
+                    id: new Date().Format('YYYYMMDDHHmmss')+(Math.round(Math.random() * 89 + 100)).toString()
+                })" v-if="payMode && formLabelAlign.email">立即支付</a>
                                         </div>
                                     </div>
                                 </div>
@@ -190,6 +201,16 @@
             categorys: [
                 {
                     value: 'meiguang',
+                    name: '测试类型',
+                    goods:[
+                        {
+                            name:"测试(0.1元)",
+                            value: 0.1
+                        }
+                    ]
+                },
+                {
+                    value: 'meiguang',
                     name: '美逛群发工具',
                     goods:[
                         {
@@ -243,20 +264,6 @@
                 }else{
                     this.open();
                 }
-            },
-            open(){
-                window.open(`./alipay.html?data=${JSON.stringify({
-                    category: {
-                        value: this.category.value,
-                        name: this.category.name
-                    },
-                    good: this.good,
-                    num: this.num,
-                    email: this.formLabelAlign.email,
-                    payMode: this.payMode,
-                    time: new Date().Format('YYYY-MM-DD HH:mm:ss'),
-                    id: new Date().Format('YYYYMMDDHHmmss')+(Math.round(Math.random() * 89 + 100)).toString()
-                })}`)
             }
         }
     });
