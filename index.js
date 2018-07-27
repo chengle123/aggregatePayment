@@ -13,7 +13,8 @@ let io = require('socket.io')(server);
 
 const querystring = require('querystring');
 const AlipayService = require('./alipay');
-// const account = require('./models/account');
+const account = require('./models/account');
+const archive = require('./models/archive');
 const email = require('./email');
 const { alipayConfig, emailConfig, alipay_public_key } = require('./config');
 
@@ -86,7 +87,7 @@ router.post('/alipayGateway', function(req, res) {
                 account.update({remainderDays: day },{ where: { name: data[0] } })
             }
 
-            account.create({
+            archive.create({
                 trade_no: req.body.trade_no,
                 name: data[1]+'/'+data[2],
                 num: data[3]+'/'+data[4],
