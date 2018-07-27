@@ -93,7 +93,7 @@ router.post('/alipayGateway', function(req, res) {
                 num: data[3]+'/'+data[4],
                 email: data[0],
                 gmt_create: req.body.gmt_create,
-                key: data[2].indexOf('美逛') > 0 ? '已充值' : '1'
+                key_code: data[2].indexOf('美逛') > 0 ? '已充值' : '1'
             }).then(rows => {
                 
             });
