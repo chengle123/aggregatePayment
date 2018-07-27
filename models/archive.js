@@ -1,7 +1,7 @@
 const Sequelize= require('sequelize');
 var seq = require('./config.js').paystatisSeq;
 
-var account = seq.define('account', {
+var account = seq.define('order', {
     id: {
         autoIncrement:true,
         type: Sequelize.INTEGER,
@@ -13,20 +13,16 @@ var account = seq.define('account', {
         type: Sequelize.STRING,
         allowNull: false
     },
-    password:{
-        type: Sequelize.INTEGER,
-        allowNull:true
-    },
-    time:{
-        type: Sequelize.INTEGER,
-        allowNull:true
-    },
-    equipmentId:{
+    num:{
         type: Sequelize.STRING,
         allowNull:true
     },
-    remainderDays:{
-        type: Sequelize.INTEGER,
+    gmt_create:{
+        type: Sequelize.STRING,
+        allowNull:true
+    },
+    email:{
+        type: Sequelize.STRING,
         allowNull:true
     }
 }, {

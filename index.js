@@ -66,7 +66,35 @@ router.post('/alipayGateway', function(req, res) {
                 data: [],
                 msg: '支付成功'
             });
-            // account.update({remainderDays: day },{ where: { name: email } })
+            if(data[2].indexOf('美逛') > 0){
+                var day = 0;
+                if(data[2].indexOf('14') > 0){
+                    day = 7
+                }
+                if(data[2].indexOf('60') > 0){
+                    day = 30
+                }
+                if(data[2].indexOf('300') > 0){
+                    day = 183
+                }
+                if(data[2].indexOf('540') > 0){
+                    day = 365
+                }
+                if(data[2].indexOf('900') > 0){
+                    day = 999
+                }
+                account.update({remainderDays: day },{ where: { name: data[0] } })
+            }
+
+            account.create({
+                trade_no: req.body.trade_no,
+                name: data[1]+'/'+data[2],
+                num: data[3]+'/'+data[4],
+                email: data[0],
+                gmt_create: req.body.gmt_create
+            }).then(rows => {
+                
+            });
         }else{
             console.log('错误')
             res.end('error');
@@ -151,6 +179,7 @@ app.use('/', router);
 //   buyer_logon_id: '150***@163.com',
 //   point_amount: '0.00' }
 // )
+
 // 验签
 function signVerify(response){
     let obj = {} 
@@ -167,23 +196,6 @@ function signVerify(response){
     } else {
         return crypto.createVerify('RSA-SHA1').update(prestr).verify(alipay_public_key, response['sign'], 'base64');
     }
-}
-// 排序
-function getSignContent(dict){
-    var dict2 = {}, 
-        keys = Object.keys(dict).sort();
-    for (var i = 0, n = keys.length, key; i < n; ++i) {
-        key = keys[i];
-        dict2[key] = dict[key];
-    }
-    return dict2;
-}
-function copyObj(obj) {
-  let res = {}
-  for (var key in obj) {
-    res[key] = obj[key]
-  }
-  return res
 }
 
 // 获取支付宝交易二维码

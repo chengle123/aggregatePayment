@@ -156,7 +156,7 @@
         </el-container>
     </div>
 <script src="./js/vue.js"></script>
-<script src="js/axios.min.js"></script>
+<script src="./js/axios.min.js"></script>
 <script src="./js/element.js"></script>
 <script>
     new Vue({
@@ -243,6 +243,9 @@
             },
             handleSelect(index){
                 this.activeIndex = index;
+                if(index === 2){
+                    this.tableData = [];
+                }
             },
             pay(){
                 var _this = this

@@ -5,7 +5,7 @@ const meiguangSeq = new Sequelize('meiguang','root','',{
         dialect:'mysql',
         timezone: '+08:00',
     })
-const paystatisSeq = new Sequelize('paystatis','root','',{
+const paystatisSeq = new Sequelize('transaction_sansantao','root','',{
         host: 'localhost',
         port: 3306,
         dialect:'mysql',
