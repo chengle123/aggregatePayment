@@ -24,6 +24,10 @@ var account = seq.define('order', {
     email:{
         type: Sequelize.STRING,
         allowNull:true
+    },
+    key:{
+        type: Sequelize.STRING,
+        allowNull:true
     }
 }, {
     freezeTableName: true, // Model 对应的表名将与model名相同,
