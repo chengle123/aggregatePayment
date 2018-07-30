@@ -14,7 +14,7 @@ const emailConfig = {
     port: 465,
     auth: {
         user: '314737853@qq.com',
-        pass: 'gqvepdxyjocbbicd'
+        pass: ''
     }
 };
 
