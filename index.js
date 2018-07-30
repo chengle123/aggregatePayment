@@ -12,6 +12,7 @@ let server = require('http').createServer(app);
 let io = require('socket.io')(server);
 
 const querystring = require('querystring');
+const Sequelize= require('sequelize');
 const AlipayService = require('./alipay');
 const account = require('./models/account');
 const archive = require('./models/archive');
@@ -53,8 +54,6 @@ router.post('/alipayGateway', function(req, res) {
     try{
         //文档https://docs.open.alipay.com/194/103296/
         if(signVerify(req.body)){
-            console.log(123)
-            console.log(data)
             email(emailConfig, {
                 title: '购买通知',
                 contentTitle: '购买成功',
@@ -67,24 +66,24 @@ router.post('/alipayGateway', function(req, res) {
                 data: [],
                 msg: '支付成功'
             });
-            if(data[2].indexOf('美逛') > 0){
+            if(data[1].indexOf('美逛') > -1){
                 var day = 0;
-                if(data[2].indexOf('14') > 0){
+                if(data[2].indexOf('14') > -1){
                     day = 7
                 }
-                if(data[2].indexOf('60') > 0){
+                if(data[2].indexOf('60') > -1){
                     day = 30
                 }
-                if(data[2].indexOf('300') > 0){
+                if(data[2].indexOf('300') > -1){
                     day = 183
                 }
-                if(data[2].indexOf('540') > 0){
+                if(data[2].indexOf('540') > -1){
                     day = 365
                 }
-                if(data[2].indexOf('900') > 0){
+                if(data[2].indexOf('900') > -1){
                     day = 999
                 }
-                account.update({remainderDays: day },{ where: { name: data[0] } })
+                account.update({remainderDays:  Sequelize.literal('`remainderDays` '+('+'+day)) },{ where: { name: data[0] } })
             }
 
             archive.create({
@@ -93,7 +92,7 @@ router.post('/alipayGateway', function(req, res) {
                 num: data[3]+'/'+data[4],
                 email: data[0],
                 gmt_create: req.body.gmt_create,
-                key_code: data[2].indexOf('美逛') > 0 ? '已充值' : '1'
+                key_code: data[1].indexOf('美逛') > -1 ? '已充值' : '1'
             }).then(rows => {
                 
             });
@@ -147,6 +146,33 @@ router.post('/verifyAccount', function(req, res) {
             result: 'error',
             data: '',
             msg: '邮箱账户查询失败'
+        })
+	}
+})
+
+// 查询账单
+router.post('/getOrderList', function(req, res) {
+    try{
+        archive.findAll({where:{email: req.body.email}}).then(function(rows){
+            if(rows){
+                res.json({
+                    result: 'success',
+                    data: rows,
+                    msg: '查询订单成功'
+                })
+            }else{
+                res.json({
+                    result: 'error',
+                    data: '',
+                    msg: '没有查询到订单'
+                })
+            }
+        })
+	}catch(e) {
+        res.json({
+            result: 'error',
+            data: '',
+            msg: '查询订单失败'
         })
 	}
 })

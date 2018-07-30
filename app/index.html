@@ -21,7 +21,7 @@
                 </el-row>
             </el-header>
             <el-main>
-                <el-row v-if="activeIndex === '1'">
+                <el-row v-if="activeIndex == '1'">
                     <el-col :span="10" :offset="7">
                         <el-form label-width="80px" :model="formLabelAlign" size="small">
                             <div>
@@ -87,7 +87,7 @@
                     payMode: this.payMode,
                     time: new Date().Format('YYYY-MM-DD HH:mm:ss'),
                     id: new Date().Format('YYYYMMDDHHmmss')+(Math.round(Math.random() * 89 + 100)).toString()
-                })" v-if="payMode && formLabelAlign.email">立即支付</a>
+                })" v-if="payMode && formLabelAlign.email" target="_blank">立即支付</a>
                                         </div>
                                     </div>
                                 </div>
@@ -96,7 +96,7 @@
                     </el-col>
                 </el-row>
 
-                 <el-row v-if="activeIndex === '2'">
+                 <el-row v-if="activeIndex == '2'">
                     <el-col :span="10" :offset="7">
                         <el-form :inline="true" label-width="80px" :model="queryOrder" size="small">
                             <div>
@@ -123,19 +123,16 @@
                                             label="订单">
                                         </el-table-column>
                                         <el-table-column
-                                            prop="subject"
+                                            prop="name"
                                             label="商品名称">
                                         </el-table-column>
                                         <el-table-column
-                                            prop="price"
+                                            prop="num"
                                             label="数目/金额"
                                             width="120">
-                                            <template slot-scope="scope">
-                                                {{ scope.row.num }}（￥{{ scope.row.price }}）
-                                            </template>
                                         </el-table-column>
                                         <el-table-column
-                                            prop="key"
+                                            prop="key_code"
                                             label="卡密"
                                             width="180">
                                         </el-table-column>
@@ -173,31 +170,7 @@
                 email:''
             },
             payMode:'',
-            tableData: [{
-                trade_no: '2013112011001004330000121536',
-                subject: '美逛群发工具 / 七天试用(14元) ',
-                key: '已充值',
-                price: 14,
-                num: 1
-            }, {
-                trade_no: '2013112011001004330000121537',
-                subject: '美逛群发工具 / 七天试用(14元) ',
-                key: '已充值',
-                price: 14,
-                num: 1
-            }, {
-                trade_no: '2013112011001004330000121538',
-                subject: '美逛群发工具 / 七天试用(14元) ',
-                key: '已充值',
-                price: 14,
-                num: 1
-            }, {
-                trade_no: '2013112011001004330000121539',
-                subject: '美逛群发工具 / 七天试用(14元) ',
-                key: '已充值',
-                price: 14,
-                num: 1
-            }],
+            tableData: [],
             categorys: [
                 {
                     value: 'meiguang',
@@ -267,6 +240,22 @@
                 }else{
                     this.open();
                 }
+            },
+            onSubmit(){
+                var _this = this;
+                axios.post('/getOrderList', {
+                    email: _this.queryOrder.email
+                }).then(function (data) {
+                    if(data && data.data.result === 'success'){
+                        _this.tableData = data.data.data;
+                    }else{
+                        _this.$message({
+                            showClose: true,
+                            message: data.data.msg,
+                            type: 'error'
+                        });
+                    }
+                })
             }
         }
     });
