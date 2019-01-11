@@ -65,6 +65,9 @@
                                     ]">
                                         <el-input v-model="formLabelAlign.email" placeholder="请务必填写正确的邮箱（必填项）"></el-input>
                                     </el-form-item>
+                                    <el-form-item label="备注">
+                                        <el-input type="textarea" v-model="remark" placeholder="备注信息"></el-input>
+                                    </el-form-item>
                                     <div>
                                         <el-form-item label="支付方式">
                                             <ul class="card-box">
@@ -84,6 +87,7 @@
                     good: this.good,
                     num: this.num,
                     email: this.formLabelAlign.email,
+                    remark: this.remark,
                     payMode: this.payMode,
                     time: new Date().Format('YYYY-MM-DD HH:mm:ss'),
                     id: new Date().Format('YYYYMMDDHHmmss')+(Math.round(Math.random() * 89 + 100)).toString()
@@ -163,6 +167,7 @@
             category:'',
             good:'',
             num: 1,
+            remark:'',
             formLabelAlign:{
                 email:''
             },
@@ -173,7 +178,7 @@
             tableData: [],
             categorys: [
                 {
-                    value: 'meiguang',
+                    value: 'ceshi',
                     name: '测试类型',
                     goods:[
                         {
@@ -205,6 +210,20 @@
                         {
                             name:"永久(900元)",
                             value: 900
+                        }
+                    ]
+                },
+                {
+                    value: 'forexData',
+                    name: '外汇数据',
+                    goods:[
+                        {
+                            name:"某平台单个数据包(20元)",
+                            value: 0.01
+                        },
+                        {
+                            name:"某平台所有数据包(100元)",
+                            value: 100
                         }
                     ]
                 }

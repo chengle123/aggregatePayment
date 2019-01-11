@@ -60,6 +60,12 @@ router.post('/alipayGateway', function(req, res) {
                 contentText: `您已经成功购买${req.body.subject}，感谢您的使用`,
                 to: data[0]
             });
+            email(emailConfig, {
+                title: '新订单通知',
+                contentTitle: '您有一笔新订单',
+                contentText: `订单信息：${req.body.body}`,
+                to: '314737853@qq.com'
+            });
             res.end('success');
             io.emit("alipayGateway", {
                 result: 'success',
@@ -231,7 +237,7 @@ function alipayQR(ops, res){
     let alipay = new AlipayService(Object.assign({
         payAmount: (ops.good.value * ops.num).toFixed(2),
         orderName: ops.category.name + ops.good.name,
-        body: `${ops.email},${ops.category.name},${ops.good.name},${ops.num},${ops.good.value}`
+        body: `${ops.email},${ops.category.name},${ops.good.name},${ops.num},${ops.good.value},备注：${ops.remark}`
     }, alipayConfig));
     alipay.doPay((error, response, body)=>{
         let data = JSON.parse(body).alipay_trade_precreate_response;
