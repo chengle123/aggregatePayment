@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const alipayConfig = {
     appId: '2018040402500795',
-    notifyUrl: 'http://transaction.sansantao.com/alipayGateway',
+    notifyUrl: 'http://pay.sansantao.com/alipayGateway',
     rsaPrivateKey: fs.readFileSync('./key/privateKey.pem'),//私钥
 };
 
