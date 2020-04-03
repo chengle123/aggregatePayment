@@ -20,7 +20,7 @@
     "qr-image": "^3.2.0",
     "querystring": "^0.2.0",
     "request": "^2.87.0",
-    "sequelize": "^4.38.0",
+    "sequelize": "^5.15.1",
     "socket.io": "^2.1.1",
     "uniqid": "^5.0.3"
   }
